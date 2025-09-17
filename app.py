@@ -35,7 +35,10 @@ def get_all_products():
 
 @app.route('/products/active', methods=['GET'])
 def get_active_products():
-    active_products = [p for p in product_records if isinstance(p, dict) and p.get("active") == True]
+    active_products = []
+    for product in product_records:
+        if product.get("active") == True:
+            active_products.append(product)
     return jsonify(active_products), 200
 
 
