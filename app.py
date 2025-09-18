@@ -1,36 +1,26 @@
 from flask import Flask, request, jsonify
 
+from data import product_records
+
 app = Flask(__name__)
 
-
-product_records = [
-    {
-        "product_id": "1",
-        "product_name": "Hasbro Gaming Clue Game",
-        "description": "One murder... 6 suspects...",
-        "price": 9.95,
-        "active" : True
-    },
-    {
-        "product_id": "2",
-        "product_name": "Monopoly Board Game The Classic Edition, 2-8 players",
-        "description" : "Relive the Monopoly experiences...", 
-        "price": 35.50,
-        "active": False
-    }
-]
 
 
 @app.route('/product', methods=["POST"])
 def create_product():
     new_product = request.get_json()
+    if type(new_product) != dict:
+        return jsonify({"error": "please send a valid product using JSON with key-value pairs"}), 400
     product_records.append(new_product)
-    return jsonify({"message": "Product created", "product": new_product}), 201
+    return jsonify({"message": "product created successfully!", "product": new_product}), 201
 
 
 @app.route('/products', methods=["GET"])
 def get_all_products():
-    return jsonify(product_records), 200
+    if not product_records:
+            return jsonify({"message": "no products found", "results": []}), 200
+    return jsonify({"message": "products found", "results": product_records}), 200
+
 
 
 @app.route('/products/active', methods=['GET'])
@@ -39,15 +29,18 @@ def get_active_products():
     for product in product_records:
         if product.get("active") == True:
             active_products.append(product)
-    return jsonify(active_products), 200
+    if not active_products:
+        return jsonify({"message": "no active products found", "results": []}), 200
+    return jsonify({"message": "products found", "results": active_products}), 200
+
 
 
 @app.route('/product/<product_id>', methods=["GET"])
 def get_product(product_id):
     for product in product_records:
         if product["product_id"] == product_id:
-            return jsonify(product), 200
-    return jsonify({"error": "Product not found"}), 404
+            return jsonify({"message": "product found", "result": product}), 200
+    return jsonify({"error": "product not found"}), 404
     
 
 @app.route('/product/<product_id>', methods=["PUT"])
@@ -56,8 +49,8 @@ def update_product(product_id):
     for product in product_records:
         if product["product_id"] == product_id:
             product.update(data)
-            return jsonify({"message": "Product updated", "product": product}), 200
-    return jsonify({"error": "Prodcut not found"}), 404
+            return jsonify({"message": "product updated", "product": product}), 200
+    return jsonify({"error": "product not found"}), 404
     
 
 @app.route('/product/delete/<product_id>', methods=["DELETE"])
@@ -65,8 +58,8 @@ def delete_product(product_id):
     for product in product_records:
         if product["product_id"] == product_id:
             product_records.remove(product)
-            return jsonify({"message": "Product deleted"}), 200
-    return jsonify({"error": "Product not found"}), 404
+            return jsonify({"message": "product deleted"}), 200
+    return jsonify({"error": "product not found"}), 404
 
 
 
